@@ -1,91 +1,91 @@
-# Hospital Management System
-
-## This is a Fullstack Hospital Management System project built using the MERN stack, with three distinct user roles: User, Doctor, and Admin.
-
-1. **User Features**:
-   Users can register or log in to explore the list of available doctors by their specializations. They can easily book appointments, make payments online through Razorpay, and view all upcoming and past appointments. Users can also update their personal information in the "My Profile" section.
-
-2. **Doctor Features**:
-   Doctors can log in to view and manage their appointments and update their profiles. Through their personalized dashboard, they can track total earnings, the number of appointments, and patient interactions. Doctors have the option to complete or cancel appointments directly from their dashboard, enabling efficient appointment management.
-
-3. **Admin Features**:
-   The admin can log in to oversee all aspects of the system. They have access to an Admin Dashboard that displays the total number of doctors, patients, and booked appointments. Additionally, the admin can view recent appointments and manage doctor profiles and their schedules, streamlining the system's functionality.
-
-_This project demonstrates a comprehensive hospital management solution, supporting an intuitive user experience, robust role-specific features, and secure online payments, providing seamless interaction for patients, doctors, and administrators._
-
-**Live Preview** : https://hms-frontend-kappa.vercel.app/
-<br/>
-<br/>
-**Admin/Doctor Portal** : https://hms-admin-nine.vercel.app/
-
-## Here are some references images
-
-## User Sction
-
-### User Registration & Login
-
-<img src="frontend/src/readme_images/userSignup.png" alt="User Registration" style="padding:0 10px;"/>
-
-<img src="frontend/src/readme_images/userLogin.png" alt="User Login" style="padding:0 10px;"/>
-
-### Home Screen
-
-<img src="frontend/src/readme_images/home1.png" alt="Home" style="padding:0 10px;"/>
-
-<img src="frontend/src/readme_images/home-findbySpeciality.png" alt="Home" style="padding:0 10px;"/>
-
-<img src="frontend/src/readme_images/footer.png" alt="Footer" style="padding:0 10px;"/>
-
-### All Doctors Page
-
-<img src="frontend/src/readme_images/allDoctors.png" alt="All Doctors" style="padding:0 10px;"/>
-
-### About Us
-
-<img src="frontend/src/readme_images/about.png" alt="About Us" style="padding:0 10px;"/>
-
-### Contact Information
-
-<img src="frontend/src/readme_images/contactUs.png" alt="Contact Information" style="padding:0 10px;"/>
-
-## Admin Section
-
-### Admin Login
-
-<img src="frontend/src/readme_images/adminLogin.png" alt="Admin Login" style="padding:0 10px;"/>
-
-### Admin Dashboard
-
-<img src="frontend/src/readme_images/adminDashboard.png" alt="Admin Dashboard" style="padding:0 10px;"/>
-
-### All Appointments
-
-<img src="frontend/src/readme_images/adminAppointments.png" alt="All Appointments" style="padding:0 10px;"/>
-
-### Add Doctor Form
-
-<img src="frontend/src/readme_images/adminAddDoctor.png" alt="Add Doctor" style="padding:0 10px;"/>
-
-### All Doctor
-
-<img src="frontend/src/readme_images/adminAllDoctor.png" alt="All Doctors" style="padding:0 10px;"/>
-
-## Doctor Section
-
-### Doctor Login
-
-<img src="frontend/src/readme_images/doctorLogin.png" alt="Doctor Login" style="padding:0 10px;"/>
-
-### Doctor Dashboard
-
-<img src="frontend/src/readme_images/doctorDashboard.png" alt="Doctor Dashboard" style="padding:0 10px;"/>
-
-### Doctor Appointments
-
-<img src="frontend/src/readme_images/doctorAppointmnets.png" alt="Doctor Appointments" style="padding:0 10px;"/>
-
-### Doctor Profile
-
-<img src="frontend/src/readme_images/doctorProfile.png" alt="Doctor Profile" style="padding:0 10px;"/>
-
-### Thank You for Visiting 🎊 🎉 🙏
+Hospital Management System (Prescripto)
+A fullstack Hospital Management System built on the MERN stack, with three
+separate apps: a patient-facing frontend, a backend API, and an
+admin/doctor portal.
+User features — register/login, browse doctors by specialization, book
+appointments, pay online via Razorpay, view upcoming/past appointments,
+edit profile.
+Doctor features — log in, manage appointments, complete/cancel bookings,
+track earnings and appointment counts, update profile.
+Admin features — dashboard with doctor/patient/appointment counts,
+manage doctor profiles and schedules, view recent appointments.
+Project structure
+```
+├── backend/    Express + MongoDB API (port 4000 by default)
+├── frontend/   Patient-facing React app (Vite)
+└── admin/      Admin + Doctor portal (React, Vite)
+```
+Prerequisites
+Node.js 18+ and npm
+MongoDB running locally (`mongodb://localhost:27017`) or an Atlas cluster
+A Cloudinary account (image storage)
+A Razorpay account (payments)
+An SMTP-capable email account (e.g. Gmail with an app password), if using
+email notifications
+1. Backend setup
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
+Fill in `backend/.env`:
+Variable	Notes
+`PORT`	e.g. `4000`
+`MONGODB_URI`	No trailing slash, no db name — e.g. `mongodb://localhost:27017`. The code appends `/prescripto` itself.
+`CLOUDINARY_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_SECRET_KEY`	From your Cloudinary dashboard
+`ADMIN_EMAIL` / `ADMIN_PASSWORD`	Credentials for the admin login
+`JWT_SECRET`	Any long random string
+`RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`	From your Razorpay dashboard
+`CURRENCY`	e.g. `INR`
+`SMTP_HOST` / `SMTP_PORT` / `SMTP_EMAIL` / `SMTP_PASSWORD`	Your SMTP provider details
+Run it:
+```bash
+npm run server
+```
+You should see:
+```
+Cloudinary Connected
+Server Started  4000
+Database Connected
+```
+> **Common pitfall:** if `MONGODB_URI` already ends in `/` or `/prescripto`,
+> you'll get `MongoServerError: Invalid namespace specified` because the code
+> appends `/prescripto` on top of it. Keep `MONGODB_URI` bare, as shown above.
+2. Frontend setup (patient-facing app)
+```bash
+cd frontend
+npm install
+cp .env.example .env
+```
+Fill in `frontend/.env`:
+Variable	Notes
+`VITE_BACKEND_URL`	e.g. `http://localhost:4000`
+`VITE_RAZORPAY_KEY_ID`	Same Razorpay key ID as backend
+Run it:
+```bash
+npm run dev
+```
+3. Admin/Doctor portal setup
+```bash
+cd admin
+npm install
+cp .env.example .env
+```
+Fill in `admin/.env`:
+Variable	Notes
+`VITE_BACKEND_URL`	e.g. `http://localhost:4000`
+Run it:
+```bash
+npm run dev
+```
+Running all three together
+Open three terminals and run `npm run server` in `backend/`, `npm run dev`
+in `frontend/`, and `npm run dev` in `admin/`. By default Vite serves each
+app on its own port (check the terminal output for the exact URL).
+Tech stack
+Backend: Express, Mongoose, JWT auth, bcrypt, Multer + Cloudinary
+(image uploads), Nodemailer, Razorpay, Validator
+Frontend / Admin: React, Vite, React Router, Axios, React Toastify
+Live demo (original project)
+Frontend: https://hms-frontend-kappa.vercel.app/
+Admin/Doctor portal: https://hms-admin-nine.vercel.app/
