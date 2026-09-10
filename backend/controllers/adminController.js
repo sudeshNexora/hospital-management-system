@@ -93,7 +93,11 @@ const loginAdmin = async (req, res) => {
       email === process.env.ADMIN_EMAIL &&
       password === process.env.ADMIN_PASSWORD
     ) {
-      const token = jwt.sign(email + password, process.env.JWT_SECRET);
+      const token = jwt.sign(
+        { email, role: "admin" },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
       res.json({
         success: true,
         message: "Admin Logged in Successfully",
@@ -139,6 +143,10 @@ const appointmentCancel = async (req, res) => {
   try {
     const { appointmentId } = req.body;
     const appointmentData = await appointmentModel.findById(appointmentId);
+
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
 
     await appointmentModel.findByIdAndUpdate(appointmentId, {
       cancelled: true,

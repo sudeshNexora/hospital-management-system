@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { assets } from "../assets/assets.js";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
+import { assets } from "../assets/assets.js";
+import BrandMark from "./BrandMark.jsx";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -43,12 +44,9 @@ const Navbar = () => {
       }`}
     >
       <div className="flex items-center justify-between py-4">
-        <img
-          onClick={() => navigate("/")}
-          src={assets.logo}
-          alt="Logo"
-          className="w-40 sm:w-44 cursor-pointer"
-        />
+        <div onClick={() => navigate("/")} className="cursor-pointer">
+          <BrandMark textClassName="text-base sm:text-lg" />
+        </div>
 
         <ul className="hidden md:flex items-center gap-1 font-medium text-sm">
           {navLinks.map((link) => (
@@ -70,7 +68,7 @@ const Navbar = () => {
             </NavLink>
           ))}
           <a
-            href="https://hms-admin-theta.vercel.app/"
+            href="http://localhost:5174/"
             target="_blank"
             rel="noreferrer"
             className="ml-2 px-4 py-2 rounded-full text-white bg-primary hover:bg-primary-dark transition-colors duration-200 text-sm shadow-sm"
@@ -149,7 +147,7 @@ const Navbar = () => {
               }`}
             >
               <div className="flex items-center justify-between px-5 py-6 border-b border-gray-100">
-                <img className="w-32" src={assets.logo} alt="" />
+                <BrandMark textClassName="text-sm" />
                 <img
                   onClick={() => setShowMenu(false)}
                   className="w-6 cursor-pointer"

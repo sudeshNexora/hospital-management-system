@@ -54,7 +54,9 @@ const registerUser = async (req, res) => {
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       success: true,
@@ -77,7 +79,9 @@ const loginUser = async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
       res.json({ success: true, message: "User Login successfully", token });
     } else {
       res.json({ success: false, message: "Incorrect Password" });
@@ -139,31 +143,40 @@ const bookAppointment = async (req, res) => {
     const { userId, docId, slotDate, slotTime } = req.body;
 
     const docData = await doctorModel.findById(docId).select("-password");
-    if (!docData.available) {
+    if (!docData || !docData.available) {
       return res.json({
         success: false,
         message: "Doctor is not available for Appointment",
       });
     }
-    let slots_booked = docData.slots_booked;
 
-    // checking for slots availability
-    if (slots_booked[slotDate]) {
-      if (slots_booked[slotDate].includes(slotTime)) {
-        return res.json({
-          success: false,
-          message: "Slot is not available",
-        });
-      } else {
-        slots_booked[slotDate].push(slotTime);
-      }
-    } else {
-      slots_booked[slotDate] = [];
-      slots_booked[slotDate].push(slotTime);
+    // Atomically claim the slot: this update only succeeds if the slot
+    // isn't already taken, so two simultaneous booking requests can't
+    // both win the same slot (a plain read-then-write can't guarantee that).
+    const updatedDoctor = await doctorModel.findOneAndUpdate(
+      {
+        _id: docId,
+        [`slots_booked.${slotDate}`]: { $ne: slotTime },
+      },
+      {
+        $push: { [`slots_booked.${slotDate}`]: slotTime },
+      },
+      { new: true }
+    );
+
+    if (!updatedDoctor) {
+      return res.json({
+        success: false,
+        message: "Slot is not available",
+      });
     }
 
     const userData = await userModel.findById(userId).select("-password");
-    delete docData.slots_booked;
+
+    // Snapshot doctor details without slots_booked, so each appointment
+    // record doesn't store (and duplicate) the doctor's entire booking map
+    const docSnapshot = docData.toObject();
+    delete docSnapshot.slots_booked;
 
     const appointmentData = {
       userId,
@@ -171,13 +184,12 @@ const bookAppointment = async (req, res) => {
       slotDate,
       slotTime,
       userData,
-      docData,
-      amount: docData.fee,
+      docData: docSnapshot,
+      amount: docSnapshot.fee,
       date: new Date().getTime(),
     };
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
     // Send booking confirmation email (fire-and-forget, never blocks the response)
     const formattedDate = slotDate.split("_").join("/");
@@ -187,10 +199,10 @@ const bookAppointment = async (req, res) => {
       html: `
         <h2>Your appointment is confirmed!</h2>
         <p>Hi ${userData.name},</p>
-        <p>Your appointment with <b>Dr. ${docData.name}</b> (${docData.speciality}) has been booked.</p>
+        <p>Your appointment with <b>Dr. ${docSnapshot.name}</b> (${docSnapshot.speciality}) has been booked.</p>
         <p><b>Date:</b> ${formattedDate}<br/>
            <b>Time:</b> ${slotTime}<br/>
-           <b>Fee:</b> ${docData.fee}</p>
+           <b>Fee:</b> ${docSnapshot.fee}</p>
         <p>You can view or manage this appointment anytime from "My Appointments".</p>
       `,
     });
@@ -219,6 +231,10 @@ const cancelAppointment = async (req, res) => {
   try {
     const { userId, appointmentId } = req.body;
     const appointmentData = await appointmentModel.findById(appointmentId);
+
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
 
     // Verify that the appointment is booked by this user
     if (appointmentData.userId !== userId) {

@@ -44,7 +44,9 @@ const loginDoctor = async (req, res) => {
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid Credentials" });
     }
-    const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
     res.json({ success: true, token });
   } catch (error) {
     console.error(error);
@@ -99,6 +101,19 @@ const appointmentCancel = async (req, res) => {
       await appointmentModel.findByIdAndUpdate(appointmentId, {
         cancelled: true,
       });
+
+      // Release the doctor's slot so it can be booked again
+      const { slotDate, slotTime } = appointmentData;
+      const doctorData = await doctorModel.findById(docId);
+      if (doctorData && doctorData.slots_booked[slotDate]) {
+        doctorData.slots_booked[slotDate] = doctorData.slots_booked[
+          slotDate
+        ].filter((e) => e !== slotTime);
+        await doctorModel.findByIdAndUpdate(docId, {
+          slots_booked: doctorData.slots_booked,
+        });
+      }
+
       return res.json({
         success: true,
         message: "Appointment Cancelled",
